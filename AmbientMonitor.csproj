@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <VersionPrefix>2.0</VersionPrefix>
+    <BuildNumber>25</BuildNumber>
+    <Version>$(VersionPrefix).$(BuildNumber)</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>$(Version).0</FileVersion>
+    <InformationalVersion>$(Version)+build.$(BuildNumber)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Upload-Ready\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="BuildNumber" Value="$(BuildNumber)" />
+    <AssemblyMetadata Include="BuildConfiguration" Value="$(Configuration)" />
+    <Compile Remove="Tests\**\*.cs" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+    <Resource Include="Ambient_Monitor_Icon.png" />
+    <EmbeddedResource Include="Shaders\Ambient.hlsl" />
+  </ItemGroup>
+
+</Project>

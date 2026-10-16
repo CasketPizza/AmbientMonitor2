@@ -1,0 +1,681 @@
+<ui:FluentWindow x:Class="AmbientMonitor.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:local="clr-namespace:AmbientMonitor"
+    Title="Ambient Monitor" Width="1080" Height="850" MinWidth="900" MinHeight="650"
+    WindowStartupLocation="CenterScreen" ExtendsContentIntoTitleBar="True"
+    WindowBackdropType="None" WindowCornerPreference="Round" BorderThickness="0"
+    Background="#303034" Foreground="#F4F4F7" FontFamily="Segoe UI Variable Display, Segoe UI"
+    FontSize="14" Icon="Ambient_Monitor_Icon.png" PreviewKeyDown="ShortcutBox_OnPreviewKeyDown">
+    <ui:FluentWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Dark" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+            <Color x:Key="MutedColor">#A3A5B3</Color>
+            <SolidColorBrush x:Key="MutedText" Color="{DynamicResource MutedColor}" />
+            <SolidColorBrush x:Key="MainText" Color="#F4F4F7" />
+            <SolidColorBrush x:Key="CardSurface" Color="#C03C3C42" />
+            <SolidColorBrush x:Key="SurfaceBorder" Color="#18FFFFFF" />
+            <SolidColorBrush x:Key="FlyoutSurface" Color="#303034" />
+            <BooleanToVisibilityConverter x:Key="BoolVisibility" />
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource MainText}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="Caption" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource MutedText}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Margin" Value="0,5,0,0" />
+            </Style>
+            <Style x:Key="Card" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource CardSurface}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorder}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="22" />
+                <Setter Property="Margin" Value="0,0,0,12" />
+            </Style>
+            <Style x:Key="CardTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Margin" Value="0,0,0,18" />
+            </Style>
+            <Style x:Key="Value" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="SettingSlider" TargetType="Slider" BasedOn="{StaticResource {x:Type Slider}}">
+                <Setter Property="Margin" Value="0,10,0,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="Divider" TargetType="Border">
+                <Setter Property="Height" Value="1" />
+                <Setter Property="Background" Value="#0DFFFFFF" />
+                <Setter Property="Margin" Value="0,20,0,20" />
+            </Style>
+            <Style x:Key="NavigationItem" TargetType="RadioButton">
+                <Setter Property="Foreground" Value="{DynamicResource MainText}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Height" Value="46" />
+                <Setter Property="Margin" Value="12,2" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="Item" Background="{TemplateBinding Background}" CornerRadius="7">
+                                <Grid>
+                                    <Border x:Name="Indicator" Width="3" Height="20" CornerRadius="2"
+                                            Background="{DynamicResource AccentText}" HorizontalAlignment="Left" Visibility="Collapsed" />
+                                    <ContentPresenter Margin="18,0,12,0" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Item" Property="Background" Value="#10FFFFFF" /></Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Item" Property="Background" Value="#18FFFFFF" />
+                                    <Setter TargetName="Indicator" Property="Visibility" Value="Visible" />
+                                    <Setter Property="Foreground" Value="{DynamicResource MainText}" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Item" Property="BorderBrush" Value="{DynamicResource AccentText}" /><Setter TargetName="Item" Property="BorderThickness" Value="1" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="DisplayTab" TargetType="ListBoxItem">
+                <Setter Property="Foreground" Value="{StaticResource MutedText}" />
+                <Setter Property="Padding" Value="16,14" />
+                <Setter Property="Margin" Value="0,0,6,0" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Tab" Background="Transparent" CornerRadius="8,8,0,0">
+                                <Grid>
+                                    <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                                    <Border x:Name="Underline" Height="3" Margin="14,0,14,0" CornerRadius="2"
+                                            Background="{DynamicResource AccentText}" VerticalAlignment="Bottom" Visibility="Collapsed" />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Tab" Property="Background" Value="#0DFFFFFF" /></Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Tab" Property="Background" Value="{DynamicResource AccentTint}" />
+                                    <Setter TargetName="Underline" Property="Visibility" Value="Visible" />
+                                    <Setter Property="Foreground" Value="{DynamicResource MainText}" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Tab" Property="BorderBrush" Value="{DynamicResource AccentText}" />
+                                    <Setter TargetName="Tab" Property="BorderThickness" Value="1" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </ui:FluentWindow.Resources>
+
+    <Grid Background="#303034">
+        <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <ui:TitleBar x:Name="WindowTitleBar" Title="" Header="{x:Null}" Icon="{x:Null}" ApplicationTheme="Dark" Height="32" Background="Transparent" />
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="214" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+
+            <!-- Persistent navigation and runtime state. -->
+            <Border BorderBrush="#0AFFFFFF" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <StackPanel Margin="24,12,20,24">
+                        <Image Source="Ambient_Monitor_Icon.png" Width="46" Height="46" HorizontalAlignment="Left" Margin="0,0,0,14" />
+                        <TextBlock Text="Ambient Monitor" FontSize="19" FontWeight="SemiBold" />
+                        <TextBlock x:Name="TaglineText" Text="A seamless backdrop for your setup" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,7,0,0" />
+                        <TextBlock x:Name="ActivePresetText" Text="Current setup" FontSize="11" Foreground="{DynamicResource AccentText}" Margin="0,12,0,0" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1">
+                        <TextBlock Text="DISPLAY SETTINGS" FontSize="10" Foreground="{StaticResource MutedText}" Margin="30,0,0,12" />
+                        <RadioButton x:Name="AppearanceNav" GroupName="Pages" Tag="Appearance" Style="{StaticResource NavigationItem}" Checked="NavigationChanged" AutomationProperties.Name="Appearance settings">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE790;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" Width="32" /><TextBlock Text="Appearance" /></StackPanel>
+                        </RadioButton>
+                        <RadioButton x:Name="FramingNav" GroupName="Pages" Tag="Framing" Style="{StaticResource NavigationItem}" Checked="NavigationChanged" AutomationProperties.Name="Image framing settings">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE7AD;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" Width="32" /><TextBlock Text="Image framing" /></StackPanel>
+                        </RadioButton>
+                        <RadioButton x:Name="PerformanceNav" GroupName="Pages" Tag="Performance" Style="{StaticResource NavigationItem}" Checked="NavigationChanged" AutomationProperties.Name="Performance settings">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE9D9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" Width="32" /><TextBlock Text="Performance" /></StackPanel>
+                        </RadioButton>
+                        <Border Style="{StaticResource Divider}" Margin="24,18,24,14" />
+                        <RadioButton x:Name="ApplicationNav" GroupName="Pages" Tag="Application" Style="{StaticResource NavigationItem}" Checked="NavigationChanged" AutomationProperties.Name="Application settings">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" Width="32" /><TextBlock Text="App settings" /></StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Margin="22,20,22,24">
+                        <Border Background="{DynamicResource AccentTint}" BorderBrush="{DynamicResource AccentTintBorder}" BorderThickness="1" CornerRadius="8" Padding="12" ToolTipService.ShowDuration="30000">
+                            <Border.ToolTip>
+                                <ToolTip MaxWidth="350">
+                                    <StackPanel>
+                                        <TextBlock Text="Choose where the work happens" FontWeight="SemiBold" Margin="0,0,0,10" />
+                                        <TextBlock Text="GPU · recommended" FontWeight="SemiBold" />
+                                        <TextBlock Text="Direct3D captures and processes frames in GPU memory. Usually smoother with lower CPU use and fewer copies. It uses GPU resources, which may compete with a demanding game, and requires Desktop Duplication support." Style="{StaticResource Caption}" Margin="0,4,0,12" />
+                                        <TextBlock Text="CPU · software processing" FontWeight="SemiBold" />
+                                        <TextBlock Text="GDI captures the desktop and the CPU applies the effects. Useful when GPU capture is unavailable or you want to move processing away from a busy GPU. Usually more CPU use and memory transfers; large images can update more slowly. Windows still uses the GPU to display the final image." Style="{StaticResource Caption}" />
+                                        <TextBlock Text="Changing this fully restarts the renderer process. The UI stays open and keeps your tabs and unsaved settings." Style="{StaticResource Caption}" Margin="0,12,0,0" />
+                                    </StackPanel>
+                                </ToolTip>
+                            </Border.ToolTip>
+                            <StackPanel>
+                                <TextBlock Text="Processing engine ⓘ" FontSize="12" Foreground="{DynamicResource AccentText}" Margin="0,0,0,10" />
+                                <UniformGrid Columns="2">
+                                    <RadioButton x:Name="GpuBackendButton" Content="GPU" GroupName="Backend" Tag="Gpu" Checked="BackendChanged" AutomationProperties.Name="GPU processing" />
+                                    <RadioButton x:Name="CpuBackendButton" Content="CPU" GroupName="Backend" Tag="Cpu" Checked="BackendChanged" AutomationProperties.Name="CPU processing" />
+                                </UniformGrid>
+                                <TextBlock x:Name="BackendDescriptionText" Text="Direct3D 11" FontSize="11" Foreground="{StaticResource MutedText}" Margin="0,10,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="Local capture. Always private." FontSize="11" Foreground="{StaticResource MutedText}" Margin="3,14,0,0" />
+                        <TextBlock x:Name="BuildVersionText" FontSize="11" Foreground="{StaticResource MutedText}" Margin="3,8,0,0" AutomationProperties.Name="Application version and build" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="1" Margin="30,12,30,0">
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+
+                <Border x:Name="QuickProfileBar" Style="{StaticResource Card}" Padding="10,8" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ui:Button x:Name="QuickProfileButton" Appearance="Transparent" HorizontalAlignment="Left" MinWidth="140" MaxWidth="240" Click="QuickProfiles_OnClick" ToolTip="Choose a setup profile" AutomationProperties.Name="Quick profile picker">
+                            <StackPanel Orientation="Horizontal"><TextBlock x:Name="QuickProfileName" Text="Current setup" MaxWidth="180" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" /><TextBlock x:Name="QuickAutomationBadge" Text=" · auto" Foreground="{DynamicResource AccentText}" Visibility="Collapsed" /><TextBlock Text=" ▾" /></StackPanel>
+                        </ui:Button>
+                        <ui:Button Grid.Column="1" Content="‹" Appearance="Transparent" Click="PreviousPreset_OnClick" ToolTip="Previous profile" MinWidth="32" />
+                        <ui:Button Grid.Column="2" Content="›" Appearance="Transparent" Click="NextPreset_OnClick" ToolTip="Next profile" MinWidth="32" Margin="0,0,8,0" />
+                        <ui:Button Grid.Column="3" Content="Save" Appearance="Transparent" Click="SaveButton_OnClick" ToolTip="Save changes to the active setup" />
+                        <ui:Button x:Name="QuickSaveAsButton" Grid.Column="4" Content="Save as…" Appearance="Transparent" Click="QuickSaveAs_OnClick" Margin="4,0,0,0" />
+                        <ui:Button Grid.Column="5" Content="Manage" Appearance="Transparent" Click="ManagePresets_OnClick" Margin="4,0,0,0" ToolTip="Profile hotkeys and game automation" />
+                        <ui:Button x:Name="PauseAutomationButton" Grid.Column="6" Content="Pause auto" Appearance="Transparent" Click="PauseAutomation_OnClick" Margin="4,0,0,0" ToolTip="Pause automatic profile switching; current overlay stays as-is" />
+                        <Popup x:Name="QuickSaveAsPopup" PlacementTarget="{Binding ElementName=QuickSaveAsButton}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+                            <Border Background="{DynamicResource FlyoutSurface}" BorderBrush="{DynamicResource SurfaceBorder}" BorderThickness="1" CornerRadius="8" Padding="16" Width="300">
+                                <StackPanel><TextBlock Text="Save setup as a new profile" FontWeight="SemiBold" Margin="0,0,0,10" /><TextBox x:Name="QuickPresetNameBox" MaxLength="60" KeyDown="QuickPresetName_OnKeyDown" AutomationProperties.Name="Quick new profile name" /><ui:Button Content="Save new profile" Click="SaveQuickPreset_OnClick" Margin="0,12,0,0" HorizontalAlignment="Right" /></StackPanel>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </Border>
+
+                <!-- The selected profile follows you between pages. -->
+                <Border x:Name="TargetProfileCard" Grid.Row="1" Style="{StaticResource Card}" Padding="0">
+                    <StackPanel>
+                        <Grid Margin="14,10,14,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="DisplayTargetButton" Content="Displays" GroupName="TargetMode" Tag="Displays" Checked="TargetModeChanged" Margin="0,0,18,0" />
+                                <RadioButton x:Name="CanvasTargetButton" Content="Custom canvases" GroupName="TargetMode" Tag="Canvases" Checked="TargetModeChanged" />
+                            </StackPanel>
+                            <StackPanel x:Name="CanvasActions" Grid.Column="1" Orientation="Horizontal" Visibility="Collapsed">
+                                <ui:Button Content="Draw box" Click="DrawCanvas_OnClick" ToolTip="Drag anywhere on the desktop to create a new canvas. Escape cancels." />
+                                <ui:Button x:Name="RedrawCanvasButton" Content="Redraw" Appearance="Transparent" Click="RedrawCanvas_OnClick" Margin="6,0,0,0" />
+                                <ui:Button x:Name="DeleteCanvasButton" Content="Delete" Appearance="Transparent" Click="DeleteCanvas_OnClick" Margin="6,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                        <ListBox x:Name="DisplayTabs" SelectionChanged="DisplayTabs_OnSelectionChanged"
+                                 ItemContainerStyle="{StaticResource DisplayTab}" Background="Transparent" BorderThickness="0"
+                                 AutomationProperties.Name="Display tabs" SelectedValuePath="DeviceName">
+                            <ListBox.Template>
+                                <ControlTemplate TargetType="ListBox">
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                                  CanContentScroll="False" Focusable="False" Padding="8,0,8,0">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </ControlTemplate>
+                            </ListBox.Template>
+                            <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" ToolTip="{Binding DeviceName}">
+                                        <TextBlock Text="&#xE7F4;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" Margin="0,0,9,0"
+                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" VerticalAlignment="Center" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding TabTitle}" ToolTip="{Binding TabTitle}" TextWrapping="NoWrap" MaxWidth="180" TextTrimming="CharacterEllipsis"
+                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" />
+                                            <TextBlock Text="{Binding TabSubtitle}" FontSize="10" TextWrapping="NoWrap" Foreground="{StaticResource MutedText}" Margin="0,4,0,0"
+                                                       Visibility="{Binding HasTabSubtitle, Converter={StaticResource BoolVisibility}}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock x:Name="EmptyCanvasText" Text="No custom canvases yet. Click Draw box, then drag a rectangle on your desktop." Style="{StaticResource Caption}" Margin="20,10" Visibility="Collapsed" />
+                        <Border BorderBrush="#0DFFFFFF" BorderThickness="0,1,0,0" Padding="20,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                    <TextBlock x:Name="DisplayProfileNameText" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="DisplayDetailsText" FontSize="11" Foreground="{StaticResource MutedText}" Margin="0,5,0,0" />
+                                </StackPanel>
+                                <ui:Button Grid.Column="1" Content="Rename" Appearance="Transparent" VerticalAlignment="Center" Margin="0,0,16,0" Click="RenameDisplay_OnClick" />
+                                <ui:ToggleSwitch x:Name="DisplayEnabledBox" Grid.Column="2" VerticalAlignment="Center" OnContent="Enabled" OffContent="Disabled"
+                                                 Checked="ProfileSettingChanged" Unchecked="ProfileSettingChanged" AutomationProperties.Name="Enable overlay on selected display" />
+                            </Grid>
+                        </Border>
+                        <Border x:Name="CanvasBoundsEditor" Visibility="Collapsed" BorderBrush="#0DFFFFFF" BorderThickness="0,1,0,0" Padding="20,12">
+                            <Expander Header="Canvas position &amp; size" IsExpanded="False">
+                            <StackPanel>
+                                <TextBlock Text="Canvas position &amp; size (desktop pixels)" FontSize="11" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,6,0"><TextBlock Text="Left / X" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" /><TextBox x:Name="CanvasLeftBox" ToolTip="Left coordinate; negative positions are supported" AutomationProperties.Name="Canvas left" /></StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,0,6,0"><TextBlock Text="Top / Y" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" /><TextBox x:Name="CanvasTopBox" ToolTip="Top coordinate" AutomationProperties.Name="Canvas top" /></StackPanel>
+                                    <StackPanel Grid.Column="2" Margin="0,0,6,0"><TextBlock Text="Width" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" /><TextBox x:Name="CanvasWidthBox" ToolTip="Width in pixels" AutomationProperties.Name="Canvas width" /></StackPanel>
+                                    <StackPanel Grid.Column="3" Margin="0,0,8,0"><TextBlock Text="Height" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" /><TextBox x:Name="CanvasHeightBox" ToolTip="Height in pixels" AutomationProperties.Name="Canvas height" /></StackPanel>
+                                    <ui:Button Grid.Column="4" Content="Apply bounds" VerticalAlignment="Bottom" Click="ApplyCanvasBounds_OnClick" />
+                                </Grid>
+                                <TextBlock x:Name="CanvasBoundsInfoText" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                            </Expander>
+                        </Border>
+                        <Border x:Name="NicknameEditor" Visibility="Collapsed" BorderBrush="#0DFFFFFF" BorderThickness="0,1,0,0" Padding="20,14">
+                            <StackPanel>
+                                <TextBlock Text="Display nickname" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBox x:Name="NicknameBox" MaxLength="40" KeyDown="NicknameBox_OnKeyDown" AutomationProperties.Name="Display nickname" ToolTip="Optional nickname; the original display number stays underneath the tab." />
+                                    <ui:Button Grid.Column="1" Content="Apply" Click="ApplyNickname_OnClick" Margin="10,0,0,0" />
+                                    <ui:Button Grid.Column="2" Content="Clear" Click="ClearNickname_OnClick" Margin="8,0,0,0" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Grid Grid.Row="2" Margin="0,6,0,16">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock x:Name="PageTitle" Text="Appearance" FontSize="30" FontWeight="SemiBold" />
+                        <TextBlock x:Name="PageDescription" Text="Give your other screens a little atmosphere." Foreground="{StaticResource MutedText}" Margin="0,6,0,0" />
+                    </StackPanel>
+                    <ui:Button x:Name="ApplyAllButton" Grid.Column="1" Content="Apply to all displays" VerticalAlignment="Center" Click="ApplyAll_OnClick"
+                               ToolTip="Copy this display's effects, framing, click-through and layer to every display profile. Each display keeps its nickname and enabled state. Use Save profiles to persist the changes." />
+                </Grid>
+
+                <ScrollViewer x:Name="SettingsScroll" Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <Border x:Name="PreviewCard" Style="{StaticResource Card}" Padding="16">
+                            <Expander x:Name="PreviewExpander" Header="Live canvas preview &amp; alignment" Expanded="PreviewExpanded" IsExpanded="False">
+                                <StackPanel Margin="0,12,0,0">
+                                    <local:CanvasPreview x:Name="CanvasPreviewSurface" Height="190" AutomationProperties.Name="Live selected canvas preview" />
+                                    <WrapPanel Margin="0,10,0,0"><CheckBox x:Name="PreviewGuidesBox" Content="Guides" IsChecked="True" Checked="PreviewPreferenceChanged" Unchecked="PreviewPreferenceChanged" Margin="0,0,14,0" /><CheckBox x:Name="PreviewSnapBox" Content="Snap when dragging" IsChecked="True" Checked="PreviewPreferenceChanged" Unchecked="PreviewPreferenceChanged" Margin="0,0,14,0" /><ui:Button Content="Center" Tag="Center" Click="AlignPreview_OnClick" Appearance="Transparent" /><ui:Button Content="Left" Tag="Left" Click="AlignPreview_OnClick" Appearance="Transparent" /><ui:Button Content="Right" Tag="Right" Click="AlignPreview_OnClick" Appearance="Transparent" /><ui:Button Content="Top" Tag="Top" Click="AlignPreview_OnClick" Appearance="Transparent" /><ui:Button Content="Bottom" Tag="Bottom" Click="AlignPreview_OnClick" Appearance="Transparent" /></WrapPanel>
+                                    <TextBlock x:Name="PreviewStatusText" Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </Expander>
+                        </Border>
+                        <StackPanel x:Name="AppearancePage" Grid.Row="1">
+                            <Border Style="{StaticResource Card}">
+                                <Expander x:Name="GradientExpander" Header="Independent gradient overlay · edge fade" IsExpanded="False">
+                                    <StackPanel Margin="0,14,0,0">
+                                        <Grid Margin="0,0,0,12"><TextBlock Text="Enable gradient overlay" VerticalAlignment="Center" /><ui:ToggleSwitch x:Name="GradientEnabledBox" HorizontalAlignment="Right" Checked="GradientEnabledChanged" Unchecked="GradientEnabledChanged" /></Grid>
+                                        <ComboBox x:Name="GradientModeBox" SelectedIndex="0" SelectionChanged="GradientModeChanged"><ComboBoxItem Content="Off" /><ComboBoxItem Content="Linear gradient" /><ComboBoxItem Content="Edge fade" /></ComboBox>
+                                        <TextBlock Text="Overall gradient opacity (independent of canvas strength)" Margin="0,14,0,0" /><Slider x:Name="GradientIntensitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:P0}}" />
+                                        <TextBlock Text="End / edge color (#RRGGBB)" Margin="0,14,0,6" />
+                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBox x:Name="GradientColorBox" Text="#000000" MaxLength="7" AutomationProperties.Name="Gradient end color" /><ui:Button Grid.Column="1" Content="Pick" Tag="End" Click="PickGradientColor_OnClick" Margin="8,0,0,0" /><ui:Button Grid.Column="2" Content="Apply colors" Click="ApplyGradientColor_OnClick" Margin="8,0,0,0" /></Grid>
+                                        <TextBlock Text="End / edge opacity" Margin="0,14,0,0" /><Slider x:Name="GradientOpacitySlider" Minimum="0" Maximum="1" Value="0.8" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:P0}}" />
+                                        <StackPanel x:Name="GradientLinearControls" Visibility="Collapsed">
+                                            <TextBlock Text="Start color (#RRGGBB)" Margin="0,14,0,6" /><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBox x:Name="GradientStartColorBox" Text="#000000" MaxLength="7" AutomationProperties.Name="Gradient start color" /><ui:Button Grid.Column="1" Content="Pick" Tag="Start" Click="PickGradientColor_OnClick" Margin="8,0,0,0" /></Grid>
+                                            <TextBlock Text="Start opacity" Margin="0,14,0,0" /><Slider x:Name="GradientStartOpacitySlider" Minimum="0" Maximum="1" Value="0" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:P0}}" />
+                                            <TextBlock Text="Direction (0° left→right; 90° top→bottom)" Margin="0,14,0,0" /><Slider x:Name="GradientAngleSlider" Minimum="0" Maximum="360" Value="90" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:0}°}" />
+                                        </StackPanel>
+                                        <StackPanel x:Name="GradientCommonStops">
+                                            <TextBlock Text="Fade start stop" Margin="0,14,0,0" /><Slider x:Name="GradientStartSlider" Minimum="0" Maximum="0.99" Value="0.5" ValueChanged="GradientStopsChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:P0}}" />
+                                            <TextBlock Text="Fade end stop" Margin="0,14,0,0" /><Slider x:Name="GradientEndSlider" Minimum="0.01" Maximum="1" Value="1" ValueChanged="GradientStopsChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:P0}}" />
+                                        </StackPanel>
+                                        <TextBlock Text="Falloff curve (lower = broader/softer; higher = concentrated)" Margin="0,14,0,0" /><Slider x:Name="GradientFalloffSlider" Minimum="0.25" Maximum="4" Value="1" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:0.00}}" />
+                                        <StackPanel x:Name="GradientEdgeControls" Visibility="Collapsed">
+                                            <WrapPanel Margin="0,14,0,0"><CheckBox x:Name="GradientLeftBox" Content="Left" IsChecked="True" Checked="SettingChanged" Unchecked="SettingChanged" Margin="0,0,12,0" /><CheckBox x:Name="GradientRightBox" Content="Right" IsChecked="True" Checked="SettingChanged" Unchecked="SettingChanged" Margin="0,0,12,0" /><CheckBox x:Name="GradientTopBox" Content="Top" IsChecked="True" Checked="SettingChanged" Unchecked="SettingChanged" Margin="0,0,12,0" /><CheckBox x:Name="GradientBottomBox" Content="Bottom" IsChecked="True" Checked="SettingChanged" Unchecked="SettingChanged" /></WrapPanel>
+                                            <CheckBox x:Name="GradientIndependentEdgesBox" Content="Independent width &amp; strength for each edge" Margin="0,14,0,0" Checked="SettingChanged" Unchecked="SettingChanged" />
+                                            <StackPanel IsEnabled="{Binding IsChecked, ElementName=GradientIndependentEdgesBox}" Margin="0,12,0,0">
+                                                <TextBlock Text="Left width (fraction of canvas width)" /><Slider x:Name="GradientLeftWidthSlider" Minimum="0" Maximum="0.5" Value="0.25" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" /><TextBlock Text="Left strength" /><Slider x:Name="GradientLeftOpacitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" />
+                                                <TextBlock Text="Right width (fraction of canvas width)" Margin="0,12,0,0" /><Slider x:Name="GradientRightWidthSlider" Minimum="0" Maximum="0.5" Value="0.25" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" /><TextBlock Text="Right strength" /><Slider x:Name="GradientRightOpacitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" />
+                                                <TextBlock Text="Top width (fraction of canvas height)" Margin="0,12,0,0" /><Slider x:Name="GradientTopWidthSlider" Minimum="0" Maximum="0.5" Value="0.25" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" /><TextBlock Text="Top strength" /><Slider x:Name="GradientTopOpacitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" />
+                                                <TextBlock Text="Bottom width (fraction of canvas height)" Margin="0,12,0,0" /><Slider x:Name="GradientBottomWidthSlider" Minimum="0" Maximum="0.5" Value="0.25" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" /><TextBlock Text="Bottom strength" /><Slider x:Name="GradientBottomOpacitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock x:Name="GradientInfoText" Text="Independent overlay on top of this canvas, after reflection/veil/image effects. Edge fade keeps the center clear; width 0 disables that edge. Live preview shows the same gradient. Save profiles to keep changes." Style="{StaticResource Caption}" />
+                                    </StackPanel>
+                                </Expander>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="230" /></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,22,0"><TextBlock Text="Overlay mode" FontWeight="SemiBold" /><TextBlock Text="Live ambience, a colored focus veil, or a custom image border." Style="{StaticResource Caption}" /></StackPanel>
+                                    <ComboBox x:Name="ModeBox" Grid.Column="1" VerticalAlignment="Center" SelectedIndex="0" SelectionChanged="ModeBox_OnSelectionChanged" AutomationProperties.Name="Overlay mode">
+                                        <ComboBoxItem Content="Ambient reflection" /><ComboBoxItem Content="Focus veil" /><ComboBoxItem Content="Image border" />
+                                    </ComboBox>
+                                </Grid>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Light &amp; intensity" Style="{StaticResource CardTitle}" />
+                                    <DockPanel><TextBlock Text="Overlay strength" /><TextBlock x:Name="StrengthValue" Style="{StaticResource Value}" /></DockPanel>
+                                    <Slider x:Name="StrengthSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="1" Value="0.72" ValueChanged="SettingChanged" AutomationProperties.Name="Overlay strength" />
+                                    <StackPanel x:Name="BrightnessControls">
+                                        <Border Style="{StaticResource Divider}" />
+                                        <DockPanel><TextBlock Text="Brightness" /><TextBlock x:Name="BrightnessValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="BrightnessSlider" Style="{StaticResource SettingSlider}" Minimum="0.2" Maximum="1.5" Value="0.8" ValueChanged="SettingChanged" AutomationProperties.Name="Brightness" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="VeilColorCard" Style="{StaticResource Card}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="Veil color" Style="{StaticResource CardTitle}" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="40" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Border x:Name="VeilColorPreview" CornerRadius="6" Background="#10151F" Margin="0,0,8,0" />
+                                        <TextBox x:Name="VeilColorBox" Grid.Column="1" Text="#10151F" MaxLength="7" AutomationProperties.Name="Veil color hex" />
+                                        <ui:Button Grid.Column="2" Content="Apply" Click="ApplyVeilColor_OnClick" Margin="8,0,0,0" />
+                                        <ui:Button Grid.Column="3" Content="Choose color" Click="PickVeilColor_OnClick" Margin="8,0,0,0" />
+                                    </Grid>
+                                    <TextBlock x:Name="VeilColorInfoText" Text="Choose any color, or enter #RRGGBB. Strength controls its intensity." Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="BorderImageCard" Style="{StaticResource Card}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="Custom image border" Style="{StaticResource CardTitle}" />
+                                    <TextBlock x:Name="BorderImagePathText" Text="No image selected" Style="{StaticResource Caption}" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
+                                        <ui:Button Content="Load image" Click="BrowseImage_OnClick" />
+                                        <ui:Button Content="Remove" Click="ClearImage_OnClick" Appearance="Transparent" Margin="8,0,0,0" />
+                                    </StackPanel>
+                                    <Image x:Name="BorderImagePreview" Height="120" Stretch="Uniform" HorizontalAlignment="Left" />
+                                    <TextBlock x:Name="ImageInfoText" Text="Transparent PNGs keep the center clear for your game or emulator." Style="{StaticResource Caption}" />
+                                    <TextBlock Text="Each canvas keeps its own image. Use Image framing to fit, crop, stretch, scale, position or flip it." Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="BlurCard" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Softness" Style="{StaticResource CardTitle}" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="210" /></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,20,0"><TextBlock Text="Blur style" /><TextBlock Text="Gaussian creates a softer, more natural glow." Style="{StaticResource Caption}" /></StackPanel>
+                                        <ComboBox x:Name="BlurTypeBox" Grid.Column="1" SelectedIndex="1" VerticalAlignment="Center" SelectionChanged="ProfileSelectionChanged" AutomationProperties.Name="Blur style">
+                                            <ComboBoxItem Content="Box" /><ComboBoxItem Content="Gaussian" />
+                                        </ComboBox>
+                                    </Grid>
+                                    <Border Style="{StaticResource Divider}" />
+                                    <TextBlock Text="Blur amount" />
+                                    <Grid Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="86" /></Grid.ColumnDefinitions>
+                                        <Slider x:Name="BlurSlider" Minimum="0" Maximum="240" Value="36" VerticalAlignment="Center" ValueChanged="SettingChanged" AutomationProperties.Name="Blur amount" />
+                                        <TextBox x:Name="BlurValueBox" Grid.Column="1" Text="36" Margin="16,0,0,0" VerticalContentAlignment="Center" TextAlignment="Center"
+                                                 LostFocus="BlurValueBox_OnLostFocus" KeyDown="BlurValueBox_OnKeyDown" AutomationProperties.Name="Exact blur amount" ToolTip="Enter a blur amount from 0 to 1000. Press Enter to apply." />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="NoiseCard" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,24,0"><TextBlock Text="Gradient dithering" FontWeight="SemiBold" /><TextBlock Text="Subtle animated texture to soften gradient banding." Style="{StaticResource Caption}" /></StackPanel>
+                                        <ui:ToggleSwitch x:Name="NoiseBox" Grid.Column="1" VerticalAlignment="Center" IsChecked="True" Checked="SettingChanged" Unchecked="SettingChanged" AutomationProperties.Name="Gradient dithering" />
+                                    </Grid>
+                                    <StackPanel IsEnabled="{Binding IsChecked, ElementName=NoiseBox}" Margin="0,20,0,0">
+                                        <DockPanel><TextBlock Text="Dither strength" /><TextBlock x:Name="NoiseValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="NoiseSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="0.3" Value="0.08" ValueChanged="SettingChanged" AutomationProperties.Name="Dither strength" />
+                                        <DockPanel Margin="0,18,0,0"><TextBlock Text="Dither grain size" /><TextBlock x:Name="NoiseGrainValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="NoiseGrainSlider" Style="{StaticResource SettingSlider}" Minimum="1" Maximum="32" Value="1" TickFrequency="0.5" IsSnapToTickEnabled="True" ValueChanged="SettingChanged" AutomationProperties.Name="Dither grain size" />
+                                        <TextBlock Text="1 px is the finest grain; larger values make coarser texture. Size uses canvas/output pixels, independently of blur processing resolution." Style="{StaticResource Caption}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="FramingPage" Grid.Row="1" Visibility="Collapsed">
+                            <Border Style="{StaticResource Card}">
+                                <Expander Header="Repeat cropped selection" IsExpanded="False">
+                                    <StackPanel Margin="0,14,0,0"><ComboBox x:Name="RepeatModeBox" SelectedIndex="0" SelectionChanged="ProfileSelectionChanged"><ComboBoxItem Content="Off · one copy" /><ComboBoxItem Content="Repeat" /><ComboBoxItem Content="Mirrored repeat" /></ComboBox><TextBlock Text="Horizontal copies" Margin="0,14,0,0" /><Slider x:Name="RepeatXSlider" Minimum="1" Maximum="16" Value="1" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:0}}" /><TextBlock Text="Vertical copies" Margin="0,14,0,0" /><Slider x:Name="RepeatYSlider" Minimum="1" Maximum="16" Value="1" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="SettingChanged" Style="{StaticResource SettingSlider}" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:0}}" /><TextBlock Text="Each cell uses the retained crop. Mirroring alternates direction to soften seams; blur spreads the colors. Stretching a thin strip instead gives one continuous color wash." Style="{StaticResource Caption}" /></StackPanel>
+                                </Expander>
+                            </Border>
+                            <Border x:Name="AmbientScalingCard" Style="{StaticResource Card}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="230" /></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,24,0"><TextBlock Text="Image scaling" FontWeight="SemiBold" /><TextBlock Text="Fill keeps the image proportions. Stretch fits it to every edge." Style="{StaticResource Caption}" /></StackPanel>
+                                    <ComboBox x:Name="ScaleModeBox" Grid.Column="1" VerticalAlignment="Center" SelectedIndex="0" SelectionChanged="ProfileSelectionChanged" AutomationProperties.Name="Image scaling">
+                                        <ComboBoxItem Content="Fill screen · crop edges" /><ComboBoxItem Content="Stretch to screen" />
+                                    </ComboBox>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="ImageTransformCard" Style="{StaticResource Card}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="Border size &amp; position" Style="{StaticResource CardTitle}" />
+                                    <ComboBox x:Name="BorderScaleBox" SelectedIndex="0" SelectionChanged="ProfileSelectionChanged" AutomationProperties.Name="Border scaling">
+                                        <ComboBoxItem Content="Fit · keep the whole image" /><ComboBoxItem Content="Fill · crop to canvas" /><ComboBoxItem Content="Stretch · match canvas edges" />
+                                    </ComboBox>
+                                    <TextBlock Text="Scale (0.05×–20×)" Margin="0,16,0,0" />
+                                    <Slider x:Name="ImageZoomSlider" Minimum="0.05" Maximum="20" Value="1" ValueChanged="SettingChanged" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:0.00}×}" />
+                                    <TextBlock Text="Horizontal offset (desktop pixels)" Margin="0,16,0,0" />
+                                    <Slider x:Name="ImageOffsetXSlider" Minimum="-16384" Maximum="16384" ValueChanged="SettingChanged" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:0} px}" />
+                                    <TextBlock Text="Vertical offset (desktop pixels)" Margin="0,16,0,0" />
+                                    <Slider x:Name="ImageOffsetYSlider" Minimum="-16384" Maximum="16384" ValueChanged="SettingChanged" ToolTip="{Binding Value, RelativeSource={RelativeSource Self}, StringFormat={}{0:0} px}" />
+                                    <TextBlock Text="Exact values" Margin="0,16,0,8" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0"><TextBlock Text="Scale ×" Style="{StaticResource Caption}" /><TextBox x:Name="ImageZoomBox" Text="1" AutomationProperties.Name="Exact image scale" /></StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Offset X px" Style="{StaticResource Caption}" /><TextBox x:Name="ImageOffsetXBox" Text="0" AutomationProperties.Name="Exact image horizontal offset" /></StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="0,0,8,0"><TextBlock Text="Offset Y px" Style="{StaticResource Caption}" /><TextBox x:Name="ImageOffsetYBox" Text="0" AutomationProperties.Name="Exact image vertical offset" /></StackPanel>
+                                        <ui:Button Grid.Column="3" Content="Apply" VerticalAlignment="Bottom" Click="ApplyImageTransform_OnClick" />
+                                    </Grid>
+                                    <TextBlock x:Name="ImageTransformInfoText" Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="SourceCropCard" Style="{StaticResource Card}">
+                                <Expander Header="Source crop · choose a portion of the image" IsExpanded="False">
+                                    <StackPanel Margin="0,16,0,0">
+                                        <TextBlock x:Name="SourceCropInfoText" Style="{StaticResource Caption}" Margin="0,0,0,16" />
+                                        <DockPanel><TextBlock Text="Crop left" /><TextBlock x:Name="CropLeftValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="CropLeftSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="99" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="SourceCropChanged" Tag="Left" AutomationProperties.Name="Source crop left percentage" />
+                                        <DockPanel Margin="0,14,0,0"><TextBlock Text="Crop right" /><TextBlock x:Name="CropRightValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="CropRightSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="99" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="SourceCropChanged" Tag="Right" AutomationProperties.Name="Source crop right percentage" />
+                                        <DockPanel Margin="0,14,0,0"><TextBlock Text="Crop top" /><TextBlock x:Name="CropTopValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="CropTopSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="99" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="SourceCropChanged" Tag="Top" AutomationProperties.Name="Source crop top percentage" />
+                                        <DockPanel Margin="0,14,0,0"><TextBlock Text="Crop bottom" /><TextBlock x:Name="CropBottomValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="CropBottomSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="99" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="SourceCropChanged" Tag="Bottom" AutomationProperties.Name="Source crop bottom percentage" />
+                                        <ui:Button Content="Reset source crop" Appearance="Transparent" HorizontalAlignment="Left" Margin="0,18,0,0" Click="ResetSourceCrop_OnClick" />
+                                    </StackPanel>
+                                </Expander>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Crop &amp; position" Style="{StaticResource CardTitle}" />
+                                    <StackPanel x:Name="AmbientZoomControls">
+                                        <DockPanel><TextBlock Text="Zoom" /><TextBlock x:Name="ZoomValue" Style="{StaticResource Value}" /></DockPanel>
+                                        <Slider x:Name="CropZoomSlider" Style="{StaticResource SettingSlider}" Minimum="1" Maximum="4" Value="1" ValueChanged="SettingChanged" AutomationProperties.Name="Crop zoom" />
+                                        <Border Style="{StaticResource Divider}" />
+                                    </StackPanel>
+                                    <DockPanel><TextBlock Text="Horizontal focus" /><TextBlock x:Name="FocusXValue" Style="{StaticResource Value}" /></DockPanel>
+                                    <Slider x:Name="FocusXSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="1" Value="0.5" ValueChanged="SettingChanged" AutomationProperties.Name="Horizontal focus" />
+                                    <Border Style="{StaticResource Divider}" />
+                                    <DockPanel><TextBlock Text="Vertical focus" /><TextBlock x:Name="FocusYValue" Style="{StaticResource Value}" /></DockPanel>
+                                    <Slider x:Name="FocusYSlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="1" Value="0.5" ValueChanged="SettingChanged" AutomationProperties.Name="Vertical focus" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Mirror image" Style="{StaticResource CardTitle}" />
+                                    <Grid><TextBlock Text="Flip horizontally" VerticalAlignment="Center" /><ui:ToggleSwitch x:Name="FlipHorizontalBox" HorizontalAlignment="Right" Checked="SettingChanged" Unchecked="SettingChanged" AutomationProperties.Name="Flip horizontally" /></Grid>
+                                    <Border Style="{StaticResource Divider}" />
+                                    <Grid><TextBlock Text="Flip vertically" VerticalAlignment="Center" /><ui:ToggleSwitch x:Name="FlipVerticalBox" HorizontalAlignment="Right" Checked="SettingChanged" Unchecked="SettingChanged" AutomationProperties.Name="Flip vertically" /></Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel x:Name="PerformancePage" Grid.Row="1" Visibility="Collapsed">
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="210" /></Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,20,0"><TextBlock Text="Overlay layer" FontWeight="SemiBold" /><TextBlock Text="Choose where this display sits relative to other windows." Style="{StaticResource Caption}" /></StackPanel>
+                                        <ComboBox x:Name="LayerBox" Grid.Column="1" VerticalAlignment="Center" SelectedIndex="1" SelectionChanged="LayerBox_OnSelectionChanged" AutomationProperties.Name="Overlay layer">
+                                            <ComboBoxItem Content="Stay topmost" />
+                                            <ComboBoxItem Content="Topmost" />
+                                            <ComboBoxItem Content="Normal" />
+                                            <ComboBoxItem Content="Bottom" />
+                                            <ComboBoxItem Content="On desktop" />
+                                        </ComboBox>
+                                    </Grid>
+                                    <TextBlock x:Name="LayerDescriptionText" Style="{StaticResource Caption}" Margin="0,14,0,0" />
+                                    <TextBlock Text="For widgets above an overlay, set the widgets to Topmost and choose Topmost here. Stay topmost deliberately reasserts the overlay above other topmost windows." Style="{StaticResource Caption}" Margin="0,10,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="ProcessingQualityCard" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Processing quality" Style="{StaticResource CardTitle}" />
+                                    <DockPanel><TextBlock Text="Processing resolution" /><TextBlock x:Name="CaptureScaleValue" Style="{StaticResource Value}" /></DockPanel>
+                                    <TextBlock Text="Lower resolution reduces work for either engine. Blurred reflections usually look great at 35%." Style="{StaticResource Caption}" />
+                                    <Slider x:Name="CaptureScaleSlider" Style="{StaticResource SettingSlider}" Minimum="10" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" Value="35" ValueChanged="SettingChanged" AutomationProperties.Name="Processing resolution" />
+                                    <Border Style="{StaticResource Divider}" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                        <StackPanel><TextBlock Text="30 FPS" FontSize="21" FontWeight="SemiBold" /><TextBlock Text="Update limit" Style="{StaticResource Caption}" /></StackPanel>
+                                        <StackPanel Grid.Column="1"><TextBlock x:Name="ProcessingEngineText" Text="GPU" FontSize="21" FontWeight="SemiBold" /><TextBlock Text="Capture &amp; effects" Style="{StaticResource Caption}" /></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Shared" FontSize="21" FontWeight="SemiBold" /><TextBlock Text="One capture stream" Style="{StaticResource Caption}" /></StackPanel>
+                                    </Grid>
+                                    <TextBlock Text="Strong blur automatically uses smaller working textures. Static veils stop capturing and sleep until something changes." Style="{StaticResource Caption}" Margin="0,22,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,24,0"><TextBlock Text="Click-through overlay" FontWeight="SemiBold" /><TextBlock Text="Let mouse clicks reach the applications underneath the overlay." Style="{StaticResource Caption}" /></StackPanel>
+                                    <ui:ToggleSwitch x:Name="ClickThroughBox" Grid.Column="1" VerticalAlignment="Center" IsChecked="True" Checked="SettingChanged" Unchecked="SettingChanged" AutomationProperties.Name="Click-through overlay" />
+                                </Grid>
+                            </Border>
+                            <Border x:Name="CaptureInfoCard" Style="{StaticResource Card}">
+                                <StackPanel><TextBlock Text="On-device by design" FontWeight="SemiBold" /><TextBlock Text="Your primary display is the capture source. Everything stays on this PC: no frame uploads, accounts or browser permissions." Style="{StaticResource Caption}" /></StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel x:Name="ApplicationPage" Grid.Row="1" Visibility="Collapsed">
+                            <Border Style="{StaticResource Card}"><StackPanel><Grid><TextBlock Text="GPU HDR · automatic" FontWeight="SemiBold" VerticalAlignment="Center" /><ui:ToggleSwitch x:Name="GpuHdrBox" IsChecked="True" HorizontalAlignment="Right" Checked="HdrPreferenceChanged" Unchecked="HdrPreferenceChanged" /></Grid><TextBlock Text="When Windows HDR/Advanced Color is active, GPU reflection captures/processes floating-point color and presents scRGB. HDR destinations retain highlights; SDR destinations receive SDR conversion. CPU and image-border composition remain SDR. A game on another monitor does not change the primary-display capture source." Style="{StaticResource Caption}" /></StackPanel></Border>
+                            <Border x:Name="ProfileManagementCard" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Profile shortcuts &amp; automation" Style="{StaticResource CardTitle}" />
+                                    <TextBlock Text="Use the top profile bar for quick switching and saving. Select a saved profile below to configure its hotkey or game trigger." Style="{StaticResource Caption}" Margin="0,0,0,12" />
+                                    <TextBlock Text="Search profiles" Style="{StaticResource Caption}" Margin="0,0,0,6" />
+                                    <TextBox x:Name="ProfileSearchBox" TextChanged="ProfileSearchChanged" ToolTip="Search saved profile names" AutomationProperties.Name="Search profiles" Margin="0,0,0,10" />
+                                    <ComboBox x:Name="PresetBox" SelectionChanged="PresetSelectionChanged" AutomationProperties.Name="Saved setup profiles" />
+                                    <WrapPanel Margin="0,10,0,12">
+                                        <ui:Button Content="Load selected" Click="LoadPreset_OnClick" Margin="0,0,8,0" />
+                                        <ui:Button Content="Delete selected" Click="DeletePreset_OnClick" Appearance="Transparent" />
+                                        <ui:Button Content="Duplicate" Click="DuplicateProfile_OnClick" Appearance="Transparent" Margin="8,0,0,0" />
+                                        <ui:Button Content="Move up" Tag="Up" Click="MoveProfile_OnClick" Appearance="Transparent" Margin="8,0,0,0" />
+                                        <ui:Button Content="Move down" Tag="Down" Click="MoveProfile_OnClick" Appearance="Transparent" Margin="8,0,0,0" />
+                                    </WrapPanel>
+                                    <Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBox x:Name="ProfileRenameBox" MaxLength="60" AutomationProperties.Name="Rename selected profile" /><ui:Button Grid.Column="1" Content="Rename" Click="RenameProfile_OnClick" Margin="8,0,0,0" /></Grid>
+                                    <WrapPanel Margin="0,0,0,10"><ui:Button Content="Export with images…" Click="ExportProfile_OnClick" /><ui:Button Content="Import profile…" Click="ImportProfile_OnClick" Margin="8,0,0,0" /></WrapPanel>
+                                    <TextBlock x:Name="ProfileLibraryStatusText" Style="{StaticResource Caption}" Margin="0,0,0,10" />
+                                    <Expander Header="Hotkeys · available in the window and tray" IsExpanded="False" Margin="0,0,0,12">
+                                    <StackPanel>
+                                    <TextBlock Text="Selected profile hotkey" Margin="0,18,0,8" />
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <TextBox x:Name="PresetShortcutBox" Text="Not set" IsReadOnly="True" AutomationProperties.Name="Selected profile hotkey" />
+                                        <ui:Button Grid.Column="1" Content="Record" Tag="Preset" Click="RecordPresetShortcut_OnClick" Margin="8,0,0,0" />
+                                        <ui:Button Grid.Column="2" Content="Clear" Tag="Preset" Click="ClearPresetShortcut_OnClick" Margin="8,0,0,0" />
+                                    </Grid>
+                                    <TextBlock Text="Next profile hotkey" Margin="0,14,0,8" />
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <TextBox x:Name="NextPresetShortcutBox" Text="Not set" IsReadOnly="True" AutomationProperties.Name="Next profile hotkey" />
+                                        <ui:Button Grid.Column="1" Content="Record" Tag="Next" Click="RecordPresetShortcut_OnClick" Margin="8,0,0,0" />
+                                        <ui:Button Grid.Column="2" Content="Clear" Tag="Next" Click="ClearPresetShortcut_OnClick" Margin="8,0,0,0" />
+                                    </Grid>
+                                    <TextBlock Text="Previous profile hotkey" Margin="0,14,0,8" />
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <TextBox x:Name="PreviousPresetShortcutBox" Text="Not set" IsReadOnly="True" AutomationProperties.Name="Previous profile hotkey" />
+                                        <ui:Button Grid.Column="1" Content="Record" Tag="Previous" Click="RecordPresetShortcut_OnClick" Margin="8,0,0,0" />
+                                        <ui:Button Grid.Column="2" Content="Clear" Tag="Previous" Click="ClearPresetShortcut_OnClick" Margin="8,0,0,0" />
+                                    </Grid>
+                                    <TextBlock x:Name="PresetShortcutInfoText" Text="Use a modifier plus a key. Escape cancels. Hotkey assignments save immediately." Style="{StaticResource Caption}" />
+                                    </StackPanel>
+                                    </Expander>
+                                    <Border Style="{StaticResource Divider}" />
+                                    <Grid><TextBlock Text="Activate when an executable runs" VerticalAlignment="Center" /><ui:ToggleSwitch x:Name="AutomationEnabledBox" HorizontalAlignment="Right" Checked="AutomationEnabledChanged" Unchecked="AutomationEnabledChanged" AutomationProperties.Name="Executable profile automation" /></Grid>
+                                    <TextBlock x:Name="AutomationExecutableText" Text="No executable selected" Style="{StaticResource Caption}" />
+                                    <ListBox x:Name="AutomationExecutablesList" MaxHeight="110" Margin="0,8,0,0" AutomationProperties.Name="Profile executable triggers" />
+                                    <WrapPanel Margin="0,12,0,0"><ui:Button Content="Add executables…" Click="ChooseAutomationExecutable_OnClick" /><ui:Button Content="Remove selected" Appearance="Transparent" Click="RemoveAutomationExecutable_OnClick" Margin="8,0,0,0" /><ui:Button Content="Clear all" Appearance="Transparent" Click="ClearAutomationExecutable_OnClick" Margin="8,0,0,0" /></WrapPanel>
+                                    <DockPanel Margin="0,14,0,0"><TextBlock Text="Exit/handoff delay" /><TextBlock x:Name="AutomationExitDelayValue" Style="{StaticResource Value}" /></DockPanel><Slider x:Name="AutomationExitDelaySlider" Minimum="0" Maximum="30" TickFrequency="0.5" IsSnapToTickEnabled="True" ValueChanged="AutomationExitDelayChanged" Style="{StaticResource SettingSlider}" />
+                                    <TextBlock Text="Any listed .exe activates this profile. Restore after all instances close and the exit delay expires; a launcher/game handoff cancels that countdown. Order controls priority. Manual actions take precedence. Trigger settings save immediately." Style="{StaticResource Caption}" />
+                                    <TextBlock x:Name="AutomationStatusText" Text="Automation is not configured." Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Window appearance" Style="{StaticResource CardTitle}" />
+                                    <ComboBox x:Name="ThemeBox" SelectedIndex="0" SelectionChanged="ThemePreferenceChanged" AutomationProperties.Name="Interface theme">
+                                        <ComboBoxItem Content="Follow Windows light / dark" /><ComboBoxItem Content="Dark" /><ComboBoxItem Content="Light" />
+                                    </ComboBox>
+                                    <Grid Margin="0,18,0,0"><TextBlock Text="Acrylic blur" VerticalAlignment="Center" /><ui:ToggleSwitch x:Name="AcrylicBox" IsChecked="True" HorizontalAlignment="Right" Checked="InterfacePreferenceChanged" Unchecked="InterfacePreferenceChanged" /></Grid>
+                                    <StackPanel IsEnabled="{Binding IsChecked, ElementName=AcrylicBox}" Margin="0,18,0,0"><DockPanel><TextBlock Text="Acrylic transparency" /><TextBlock x:Name="AcrylicTransparencyValue" Text="70%" Style="{StaticResource Value}" /></DockPanel><Slider x:Name="AcrylicTransparencySlider" Style="{StaticResource SettingSlider}" Minimum="0" Maximum="100" Value="70" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="AcrylicTransparencyChanged" AutomationProperties.Name="Acrylic transparency" /></StackPanel>
+                                    <TextBlock Text="Higher transparency removes the extra grey tint over Windows acrylic, including the title bar. Windows controls the base blur/material and its transparency settings. The tray menu follows the same light/dark theme." Style="{StaticResource Caption}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Global overlay shortcut" Style="{StaticResource CardTitle}" />
+                                    <TextBlock Text="Toggle all enabled displays on or off from any app, including while Ambient Monitor is in the tray." Style="{StaticResource Caption}" Margin="0,0,0,16" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <TextBox x:Name="ShortcutBox" IsReadOnly="True" Text="Not set" VerticalContentAlignment="Center" AutomationProperties.Name="Overlay toggle shortcut" />
+                                        <ui:Button x:Name="RecordShortcutButton" Grid.Column="1" Content="Record" Click="RecordShortcut_OnClick" Margin="10,0,0,0" />
+                                        <ui:Button Grid.Column="2" Content="Clear" Click="ClearShortcut_OnClick" Margin="8,0,0,0" />
+                                    </Grid>
+                                    <TextBlock x:Name="ShortcutInfoText" Text="Use Ctrl, Alt, Shift or Win plus another key. Escape cancels recording." Style="{StaticResource Caption}" Margin="0,12,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,24,0"><TextBlock Text="Close to system tray" FontWeight="SemiBold" /><TextBlock Text="The close button hides this window while overlays and the shortcut keep working. Double-click the tray icon to reopen, or use its menu to toggle overlays or exit." Style="{StaticResource Caption}" /></StackPanel>
+                                    <ui:ToggleSwitch x:Name="CloseToTrayBox" Grid.Column="1" VerticalAlignment="Center" Checked="CloseToTrayChanged" Unchecked="CloseToTrayChanged" AutomationProperties.Name="Close to system tray" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource Card}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,24,0"><TextBlock Text="App preferences save immediately" FontWeight="SemiBold" /><TextBlock x:Name="ApplicationSettingsStatusText" Text="Engine, hotkeys, tray behavior, light/dark theme and acrylic apply to the whole app and save on change. Setup effects, colors and images use Save profiles." Style="{StaticResource Caption}" /></StackPanel>
+                                    <ui:Button Grid.Column="1" Content="Exit app" Appearance="Transparent" VerticalAlignment="Center" Click="ExitApp_OnClick" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+
+                <!-- Actions stay accessible while scrolling. -->
+                <Border Grid.Row="4" BorderBrush="#12FFFFFF" BorderThickness="0,1,0,0" Padding="0,18,0,20" Margin="0,12,0,0">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:Button x:Name="StartButton" Content="Start overlay" Appearance="Primary" MinWidth="140" Click="StartButton_OnClick" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <ui:Button Content="Reset" Appearance="Transparent" Click="ResetButton_OnClick" Margin="0,0,8,0" ToolTip="Reset all display profiles to their defaults" />
+                                <ui:Button x:Name="SaveButton" Content="Save profiles" Click="SaveButton_OnClick" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Ellipse x:Name="StatusIndicator" Width="6" Height="6" Fill="#8E91A0" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <TextBlock x:Name="StatusText" Grid.Column="1" Text="Ready when you are" FontSize="11" Foreground="{StaticResource MutedText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                            <TextBlock x:Name="ProfileSaveStateText" Grid.Column="2" Text="Changes apply live" FontSize="11" Foreground="{StaticResource MutedText}" Margin="16,0,0,0" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>
